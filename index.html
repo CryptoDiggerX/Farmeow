@@ -294,7 +294,13 @@
 </div>
 
 <script type="module">
-  import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
+  let sdk = null;
+  try{
+    ({ sdk } = await import('https://esm.sh/@farcaster/frame-sdk'));
+  } catch(e){
+    // SDK failed to load (e.g. not embedded, or a network hiccup).
+    // The rest of the app still works in plain-browser mode below.
+  }
 
   // ===================== CONFIG =====================
   // Hardcoded per your existing build pattern — visible in page source.
@@ -364,9 +370,22 @@
   }
 
   async function init(){
+    if (!sdk){
+      statusPill.textContent = 'unavailable';
+      statusPill.className = 'status-pill ineligible';
+      statusText.textContent = 'Open this inside Farcaster to verify your score';
+      return;
+    }
+
+    // Dismiss the splash screen immediately — never gate this behind
+    // data fetching, or the app can hang on a blank splash forever.
+    try{ await sdk.actions.ready(); } catch(e){ /* not inside a Farcaster host — fine */ }
+
     try{
-      const context = await sdk.context;
-      await sdk.actions.ready(); // dismiss splash screen
+      const context = await Promise.race([
+        sdk.context,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('context_timeout')), 2500))
+      ]);
       userFid = context?.user?.fid ?? null;
 
       if (!userFid){
@@ -389,9 +408,9 @@
       paintStatus();
       updateButtons();
     } catch(err){
-      statusPill.textContent = 'error';
+      statusPill.textContent = 'unavailable';
       statusPill.className = 'status-pill ineligible';
-      statusText.textContent = 'Could not verify your score — try reopening';
+      statusText.textContent = 'Open this inside Farcaster to verify your score';
     }
   }
 
@@ -413,7 +432,7 @@
   async function connectWallet(){
     try{
       setMsg('');
-      provider = sdk.wallet?.ethProvider || window.ethereum;
+      provider = sdk?.wallet?.ethProvider || window.ethereum;
       if (!provider){
         setMsg('No wallet provider found in this client.', 'error');
         return;
