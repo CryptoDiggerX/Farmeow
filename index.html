@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Farmeow — Claim $FMEOW</title>
+
+<!-- ===== FARCASTER MINI APP EMBED META ===== -->
+<!-- IMPORTANT: replace imageUrl and url below with your live Netlify domain after deploy,
+     e.g. https://farmeow.netlify.app — then re-share the link on Farcaster. -->
+<meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://farmeow.netlify.app/preview.png","button":{"title":"🐾 Claim $FMEOW","action":{"type":"launch_miniapp","name":"Farmeow","url":"https://farmeow.netlify.app","splashImageUrl":"https://farmeow.netlify.app/splash.png","splashBackgroundColor":"#0E0B14"}}}' />
+<meta name="fc:frame" content='{"version":"1","imageUrl":"https://farmeow.netlify.app/preview.png","button":{"title":"🐾 Claim $FMEOW","action":{"type":"launch_frame","name":"Farmeow","url":"https://farmeow.netlify.app","splashImageUrl":"https://farmeow.netlify.app/splash.png","splashBackgroundColor":"#0E0B14"}}}' />
+
+<meta property="og:title" content="Farmeow — Claim $FMEOW" />
+<meta property="og:description" content="Score above 0.25 on Neynar? Claim your $FMEOW on Base." />
+<meta property="og:image" content="https://farmeow.netlify.app/preview.png" />
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#0A120E;
+    --bg-raised:#121F17;
+    --cream:#F1EFE6;
+    --muted:#8FA396;
+    --amber:#C8FF4D;
+    --violet:#4DE8C8;
+    --green:#C8FF4D;
+    --red:#FF6B6B;
+    --line:rgba(241,239,230,0.10);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--cream);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    display:flex;
+    justify-content:center;
+    padding:28px 18px 60px;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(77,232,200,0.14), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(200,255,77,0.10), transparent 40%),
+      var(--bg);
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .app{ width:100%; max-width:440px; }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding: 10px 4px 26px; }
+  .eyebrow{
+    display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--amber); margin-bottom:14px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--amber); box-shadow:0 0 8px var(--amber); }
+  h1{
+    font-family:'Unbounded', 'Space Grotesk', sans-serif;
+    font-optical-sizing:auto;
+    font-size:34px; line-height:1.12; font-weight:700; letter-spacing:-0.01em;
+    margin-bottom:12px;
+  }
+  h1 span{ color:var(--amber); }
+  .sub{ color:var(--muted); font-size:14.5px; line-height:1.5; max-width:36ch; }
+
+  /* ---------- WHISKER GAUGE (signature element) ---------- */
+  .gauge-card{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px 20px 20px;
+    margin-top:22px;
+  }
+  .gauge-top{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px;
+  }
+  .gauge-label{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
+  .gauge-score{ font-family:'JetBrains Mono', monospace; font-size:15px; color:var(--cream); font-weight:600; }
+
+  .whiskers{ position:relative; height:64px; }
+  .whisker-track{
+    position:absolute; top:50%; left:0; right:0; height:2px;
+    background:var(--line); transform:translateY(-50%);
+  }
+  .whisker-fill{
+    position:absolute; top:50%; left:0; height:2px;
+    background:linear-gradient(90deg, var(--violet), var(--amber));
+    transform:translateY(-50%);
+    width:0%;
+    transition:width 0.9s cubic-bezier(.16,1,.3,1);
+  }
+  .whisker-thresh{
+    position:absolute; top:8px; bottom:8px; left:25%;
+    width:1px; background:var(--muted); opacity:0.5;
+  }
+  .whisker-thresh::after{
+    content:'0.25 min'; position:absolute; top:-18px; left:50%; transform:translateX(-50%);
+    font-family:'JetBrains Mono', monospace; font-size:9px; color:var(--muted); white-space:nowrap;
+  }
+  .whisker-tick{
+    position:absolute; width:2px; height:22px; background:var(--muted); opacity:0.35; top:21px;
+  }
+  .whisker-cursor{
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    background:var(--cream); border:3px solid var(--bg-raised);
+    box-shadow:0 0 0 2px var(--amber);
+    transform:translate(-50%,-50%);
+    left:0%;
+    transition:left 0.9s cubic-bezier(.16,1,.3,1);
+  }
+
+  .status-row{
+    display:flex; align-items:center; gap:8px; margin-top:14px;
+    font-size:13px; color:var(--muted);
+  }
+  .status-pill{
+    font-family:'JetBrains Mono', monospace; font-size:11px; padding:4px 10px; border-radius:100px;
+    border:1px solid var(--line);
+  }
+  .status-pill.eligible{ color:var(--green); border-color:rgba(74,222,128,0.35); background:rgba(74,222,128,0.08); }
+  .status-pill.ineligible{ color:var(--red); border-color:rgba(255,107,107,0.35); background:rgba(255,107,107,0.08); }
+  .status-pill.pending{ color:var(--muted); }
+
+  /* ---------- CLAIM CARD ---------- */
+  .claim-card{
+    background:var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px 20px;
+    margin-top:14px;
+  }
+  .claim-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .claim-row:last-of-type{ border-bottom:none; }
+  .claim-row .k{ color:var(--muted); }
+  .claim-row .v{ font-family:'JetBrains Mono', monospace; font-weight:500; }
+
+  button.primary{
+    width:100%; margin-top:16px; padding:15px 18px; border:none; border-radius:12px;
+    background:var(--amber); color:#0A1206; font-weight:700; font-size:15px;
+    font-family:'Unbounded', 'Space Grotesk', sans-serif; letter-spacing:-0.01em; cursor:pointer;
+    transition:transform 0.15s ease, opacity 0.15s ease;
+  }
+  button.primary:active{ transform:scale(0.98); }
+  button.primary:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.secondary{
+    width:100%; margin-top:10px; padding:13px 18px; border-radius:12px;
+    background:transparent; color:var(--cream); font-weight:600; font-size:14px;
+    border:1px solid var(--line); font-family:'Unbounded', 'Space Grotesk', sans-serif; letter-spacing:-0.01em; cursor:pointer;
+  }
+
+  .msg{ margin-top:12px; font-size:12.5px; text-align:center; color:var(--muted); min-height:16px; }
+  .msg.error{ color:var(--red); }
+  .msg.success{ color:var(--green); }
+
+  /* ---------- TOKENOMICS (distribution, not sequence: bars not numbers) ---------- */
+  .section-title{
+    font-family:'Unbounded', 'Space Grotesk', sans-serif;
+    font-size:12px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); font-weight:600;
+    margin:34px 0 14px 4px;
+  }
+  .alloc{ display:flex; flex-direction:column; gap:10px; }
+  .alloc-row{ display:flex; align-items:center; gap:12px; }
+  .alloc-name{ width:74px; font-size:12.5px; color:var(--muted); flex-shrink:0; }
+  .alloc-bar-track{ flex:1; height:10px; background:var(--bg-raised); border-radius:100px; overflow:hidden; border:1px solid var(--line); }
+  .alloc-bar-fill{ height:100%; border-radius:100px; }
+  .alloc-pct{ width:38px; text-align:right; font-family:'JetBrains Mono', monospace; font-size:12.5px; flex-shrink:0; }
+
+  .supply-strip{
+    margin-top:16px; display:flex; justify-content:space-between;
+    padding:14px 16px; background:var(--bg-raised); border:1px solid var(--line); border-radius:12px;
+    font-size:12.5px;
+  }
+  .supply-strip .k{ color:var(--muted); }
+  .supply-strip .v{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- LISTINGS TIMELINE ---------- */
+  .timeline{ position:relative; padding-left:22px; }
+  .timeline::before{
+    content:''; position:absolute; left:5px; top:6px; bottom:6px; width:1px;
+    background:var(--line);
+  }
+  .tl-item{ position:relative; padding-bottom:20px; }
+  .tl-item:last-child{ padding-bottom:0; }
+  .tl-dot{
+    position:absolute; left:-22px; top:3px; width:11px; height:11px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--amber);
+  }
+  .tl-date{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--amber);
+    letter-spacing:0.05em; text-transform:uppercase; margin-bottom:4px;
+  }
+  .tl-exchanges{ font-size:14.5px; font-weight:600; }
+
+  footer{
+    margin-top:36px; text-align:center; color:var(--muted); font-size:11px; line-height:1.7;
+  }
+  footer .verified{
+    font-family:'Unbounded', 'Space Grotesk', sans-serif;
+    color:var(--amber); font-weight:700; letter-spacing:0.05em; font-size:13px;
+  }
+  footer .verified-sub{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em;
+    color:var(--muted); margin-top:4px; text-transform:uppercase;
+  }
+  footer .rights{ margin-top:10px; opacity:0.6; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>FARCASTER MINI APP · BASE MAINNET</div>
+    <h1>Farmeow<br><span>$FMEOW</span> claim</h1>
+    <p class="sub">Score above 0.25 on Neynar and you're in. One claim per wallet.</p>
+  </div>
+
+  <div class="gauge-card">
+    <div class="gauge-top">
+      <span class="gauge-label">Your Neynar score</span>
+      <span class="gauge-score mono" id="scoreText">—</span>
+    </div>
+    <div class="whiskers">
+      <div class="whisker-track"></div>
+      <div class="whisker-thresh"></div>
+      <div class="whisker-fill" id="whiskerFill"></div>
+      <div class="whisker-cursor" id="whiskerCursor"></div>
+    </div>
+    <div class="status-row">
+      <span id="statusPill" class="status-pill pending">checking…</span>
+      <span id="statusText">Reading your Farcaster profile</span>
+    </div>
+  </div>
+
+  <div class="claim-card">
+    <div class="claim-row"><span class="k">Wallet</span><span class="v" id="walletText">not connected</span></div>
+    <div class="claim-row"><span class="k">Network</span><span class="v">Base Mainnet</span></div>
+    <div class="claim-row"><span class="k">Allocation pool</span><span class="v">Farcaster users · 50%</span></div>
+
+    <button class="primary" id="mainBtn">Connect wallet</button>
+    <button class="secondary" id="claimBtn" style="display:none;">Claim $FMEOW</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="section-title">Tokenomics · 10,000,000,000 $FMEOW</div>
+  <div class="alloc">
+    <div class="alloc-row">
+      <span class="alloc-name">Farcaster</span>
+      <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:50%; background:var(--amber);"></div></div>
+      <span class="alloc-pct">50%</span>
+    </div>
+    <div class="alloc-row">
+      <span class="alloc-name">Liquidity</span>
+      <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:35%; background:var(--violet);"></div></div>
+      <span class="alloc-pct">35%</span>
+    </div>
+    <div class="alloc-row">
+      <span class="alloc-name">Team</span>
+      <div class="alloc-bar-track"><div class="alloc-bar-fill" style="width:15%; background:var(--muted);"></div></div>
+      <span class="alloc-pct">15%</span>
+    </div>
+  </div>
+  <div class="supply-strip">
+    <span class="k">Total supply</span>
+    <span class="v">10,000,000,000 FMEOW</span>
+  </div>
+
+  <div class="section-title">Listing schedule</div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">July 15</div>
+      <div class="tl-exchanges">Uniswap</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">July 16</div>
+      <div class="tl-exchanges">OKX · Bybit · Bitget</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="verified">🐾 Secured &amp; Verified</div>
+    <div class="verified-sub">Base Mainnet · Non-Custodial</div>
+    <div class="rights">© 2026 Farmeow. All rights reserved.</div>
+  </footer>
+
+</div>
+
+<script type="module">
+  import { sdk } from 'https://esm.sh/@farcaster/frame-sdk';
+
+  // ===================== CONFIG =====================
+  // Hardcoded per your existing build pattern — visible in page source.
+  const FEE_RECEIVER = "0x580Aab97021D7D379c8d26444eAae332C3014ba7"; // fee receiver wallet
+  const CLAIM_FEE_ETH = "0.00004";
+  const BASE_CHAIN_ID_HEX = "0x2105"; // 8453
+  const SCORE_THRESHOLD = 0.25;
+
+  // Replace with your real Neynar API key before deploying.
+  // NOTE: any key placed here is publicly visible to anyone who views page source —
+  // same tradeoff as your other hardcoded-wallet builds. For a production launch,
+  // route this call through a small serverless proxy instead.
+  const NEYNAR_API_KEY = "YOUR_NEYNAR_API_KEY_HERE";
+  // ====================================================
+
+  const scoreText   = document.getElementById('scoreText');
+  const whiskerFill = document.getElementById('whiskerFill');
+  const whiskerCursor = document.getElementById('whiskerCursor');
+  const statusPill  = document.getElementById('statusPill');
+  const statusText  = document.getElementById('statusText');
+  const walletText  = document.getElementById('walletText');
+  const mainBtn     = document.getElementById('mainBtn');
+  const claimBtn    = document.getElementById('claimBtn');
+  const msg         = document.getElementById('msg');
+
+  let userFid = null;
+  let userScore = null;
+  let eligible = false;
+  let connectedAddress = null;
+  let provider = null;
+  let claimedThisSession = false;
+
+  function setMsg(text, kind){
+    msg.textContent = text || '';
+    msg.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  function paintGauge(score){
+    const pct = Math.max(0, Math.min(1, score)) * 100;
+    whiskerFill.style.width = pct + '%';
+    whiskerCursor.style.left = pct + '%';
+    scoreText.textContent = score.toFixed(2);
+  }
+
+  function paintStatus(){
+    if (eligible){
+      statusPill.textContent = 'eligible';
+      statusPill.className = 'status-pill eligible';
+      statusText.textContent = 'Score clears the 0.25 threshold';
+    } else {
+      statusPill.textContent = 'not eligible';
+      statusPill.className = 'status-pill ineligible';
+      statusText.textContent = 'Score is below 0.25 — no claim available';
+    }
+  }
+
+  async function fetchNeynarScore(fid){
+    const res = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`, {
+      headers: { accept: 'application/json', api_key: NEYNAR_API_KEY }
+    });
+    if (!res.ok) throw new Error('neynar_lookup_failed');
+    const data = await res.json();
+    const u = data?.users?.[0];
+    const score = u?.experimental?.neynar_user_score ?? u?.score ?? null;
+    if (score === null) throw new Error('score_missing');
+    return score;
+  }
+
+  async function init(){
+    try{
+      const context = await sdk.context;
+      await sdk.actions.ready(); // dismiss splash screen
+      userFid = context?.user?.fid ?? null;
+
+      if (!userFid){
+        statusPill.textContent = 'unavailable';
+        statusPill.className = 'status-pill ineligible';
+        statusText.textContent = 'Open this inside Farcaster to verify your score';
+        return;
+      }
+
+      if (NEYNAR_API_KEY === "YOUR_NEYNAR_API_KEY_HERE"){
+        statusPill.textContent = 'setup needed';
+        statusPill.className = 'status-pill ineligible';
+        statusText.textContent = 'Neynar API key not configured yet';
+        return;
+      }
+
+      userScore = await fetchNeynarScore(userFid);
+      paintGauge(userScore);
+      eligible = userScore > SCORE_THRESHOLD;
+      paintStatus();
+      updateButtons();
+    } catch(err){
+      statusPill.textContent = 'error';
+      statusPill.className = 'status-pill ineligible';
+      statusText.textContent = 'Could not verify your score — try reopening';
+    }
+  }
+
+  function updateButtons(){
+    if (!connectedAddress){
+      mainBtn.style.display = 'block';
+      mainBtn.textContent = 'Connect wallet';
+      claimBtn.style.display = 'none';
+      return;
+    }
+    mainBtn.style.display = 'none';
+    claimBtn.style.display = 'block';
+    claimBtn.disabled = !eligible || claimedThisSession;
+    claimBtn.textContent = claimedThisSession
+      ? 'Claim submitted'
+      : (eligible ? 'Claim $FMEOW' : 'Score too low to claim');
+  }
+
+  async function connectWallet(){
+    try{
+      setMsg('');
+      provider = sdk.wallet?.ethProvider || window.ethereum;
+      if (!provider){
+        setMsg('No wallet provider found in this client.', 'error');
+        return;
+      }
+      const accounts = await provider.request({ method: 'eth_requestAccounts' });
+      connectedAddress = accounts[0];
+      walletText.textContent = connectedAddress.slice(0,6) + '…' + connectedAddress.slice(-4);
+      updateButtons();
+    } catch(err){
+      setMsg('Wallet connection was rejected.', 'error');
+    }
+  }
+
+  async function ensureBase(){
+    const chainId = await provider.request({ method: 'eth_chainId' });
+    if (chainId !== BASE_CHAIN_ID_HEX){
+      try{
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: BASE_CHAIN_ID_HEX }]
+        });
+      } catch(switchErr){
+        setMsg('Please switch your wallet to Base Mainnet.', 'error');
+        throw switchErr;
+      }
+    }
+  }
+
+  async function claim(){
+    if (!eligible || claimedThisSession) return;
+    try{
+      setMsg('Confirm the fee in your wallet…');
+      await ensureBase();
+
+      const valueWei = '0x' + BigInt(Math.round(parseFloat(CLAIM_FEE_ETH) * 1e18)).toString(16);
+
+      const txHash = await provider.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: connectedAddress,
+          to: FEE_RECEIVER,
+          value: valueWei
+        }]
+      });
+
+      claimedThisSession = true;
+      updateButtons();
+      setMsg(`Claim submitted — tx ${txHash.slice(0,10)}…`, 'success');
+    } catch(err){
+      setMsg('Transaction was not completed.', 'error');
+    }
+  }
+
+  mainBtn.addEventListener('click', connectWallet);
+  claimBtn.addEventListener('click', claim);
+
+  init();
+</script>
+</body>
+</html>
