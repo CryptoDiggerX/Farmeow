@@ -296,9 +296,13 @@
 <script type="module">
   let sdk = null;
   try{
-    ({ sdk } = await import('https://esm.sh/@farcaster/frame-sdk'));
+    const mod = await Promise.race([
+      import('https://esm.sh/@farcaster/frame-sdk'),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('sdk_import_timeout')), 4000))
+    ]);
+    sdk = mod.sdk;
   } catch(e){
-    // SDK failed to load (e.g. not embedded, or a network hiccup).
+    // SDK failed to load or timed out (e.g. not embedded, or a network hiccup).
     // The rest of the app still works in plain-browser mode below.
   }
 
