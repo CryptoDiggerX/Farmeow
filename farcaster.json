@@ -1,0 +1,20 @@
+{
+  "accountAssociation": {
+    "header": "REPLACE_WITH_YOUR_SIGNED_HEADER",
+    "payload": "REPLACE_WITH_YOUR_SIGNED_PAYLOAD",
+    "signature": "REPLACE_WITH_YOUR_SIGNATURE"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Farmeow",
+    "iconUrl": "https://i.postimg.cc/D0fX7yT3/icon.png",
+    "homeUrl": "https://farmeow-airdrop.vercel.app",
+    "imageUrl": "https://i.postimg.cc/YS48wRx1/preview-1.png",
+    "splashImageUrl": "https://i.postimg.cc/YCTYQH1w/splash.png",
+    "splashBackgroundColor": "#0A120E",
+    "subtitle": "Claim $FMEOW by Neynar score",
+    "description": "Score above 0.25 on Neynar and claim $FMEOW on Base Mainnet.",
+    "primaryCategory": "finance",
+    "tags": ["airdrop", "base", "farcaster", "token", "claim"]
+  }
+}
